@@ -15,6 +15,12 @@ auto getPhaserDepthName() { return juce::String("Phaser Depth %" ); }
 auto getPhaserFeedbackName() { return juce::String("Phaser Feedback %" ); }
 auto getPhaserMixName() { return juce::String("Phaser Mix %"); }
 
+auto getChorusRateName() { return juce::String("Chorus RateHz"); }
+auto getChorusDepthName() { return juce::String("Chorus Depth %" ); }
+auto getChorusCenterDelayName() { return juce::String("Chorus Center Delay Ms"); }
+auto getChorusFeedbackName() { return juce::String("Chorus Feedback %" ); }
+auto getChorusMixName() { return juce::String("Chorus Mix %"); }
+
 //==============================================================================
 Project13AudioProcessor::Project13AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -227,6 +233,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout
           juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
           0.05f,
           "%"));
+        
+    /*
+     Chorus:
+     Rate: hz
+     Depth: 0 to 1
+     Center delay: ms (1 to 100)
+     Feedback: -1 to +1
+     Mix: 0 to 1
+    */
         
     return layout;
 }
