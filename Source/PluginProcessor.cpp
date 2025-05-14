@@ -507,7 +507,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: add APVTS
     //[DONE]: create audio parameters for all dsp choices
     //TODO: update DSP here from audio parameters
-    //TODO: save/load settings
+    //[DONE]: save/load settings
     //TODO: save/load DSP order
     //TODO: Drag-To_Reorder GUI
     //TODO: GUI design for each DSP instance?
@@ -564,14 +564,14 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     auto block = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
     
-    for( size_t i = 0; i < dspPointers.size(); ++i )
-    {
-        if( dspPointers[i] != nullptr )
-        {
-            dspPointers[i]->process(context);
-        }
-    }
-    
+//   for( size_t i = 0; i < dspPointers.size(); ++i )
+//   {
+//       if( dspPointers[i] != nullptr )
+//       {
+//           dspPointers[i]->process(context);
+//       }
+//   }
+//
     
     
 }
