@@ -76,13 +76,12 @@ Project13AudioProcessor::Project13AudioProcessor()
                        )
 #endif
 {
-    dspOrder =
-    {{
-        DSP_Option::Phase,
-        DSP_Option::Chorus,
-        DSP_Option::Overdrive,
-        DSP_Option::LadderFilter,
-    }};
+    for( size_t i = 0; i < static_cast<size_t>(DSP_Option::END_OF_LIST); ++i )
+    {
+        dspOrder[i] = static_cast<DSP_Option>(i);
+    }
+    
+    
     
     auto floatParams = std::array
     {
@@ -271,8 +270,107 @@ void Project13AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     juce::dsp::ProcessSpec spec;
     spec.sampleRate = sampleRate;
     spec.maximumBlockSize = samplesPerBlock;
-    spec.numChannels = getTotalNumInputChannels();
+    spec.numChannels = 1;
     
+    leftChannel.prepare(spec);
+    rightChannel.prepare(spec);
+}
+
+void Project13AudioProcessor::MonoChannelDSP::updateDSPFromParams()
+{
+    phaser.dsp.setRate( p.phaserRateHz->get() );
+    phaser.dsp.setCentreFrequency( p.phaserCenterFreqHz->get() );
+    phaser.dsp.setDepth( p.phaserDepthPercent->get() );
+    phaser.dsp.setFeedback( p.phaserFeedbackPercent->get() );
+    phaser.dsp.setMix( p.phaserMixPercent->get() );
+    
+    chorus.dsp.setRate( p.chorusRateHz->get() );
+    chorus.dsp.setDepth( p.chorusDepthPercent->get() );
+    chorus.dsp.setCentreDelay( p.chorusCenterDelayMs->get() );
+    chorus.dsp.setFeedback( p.chorusFeedbackPercent->get() );
+    chorus.dsp.setMix( p.chorusMixPercent->get() );
+    
+    overdrive.dsp.setDrive( p.overdriveSaturation->get() );
+    
+    ladderFilter.dsp.setMode(
+                             static_cast<juce::dsp::LadderFilterMode>( p.ladderFilterMode->getIndex()));
+    ladderFilter.dsp.setCutoffFrequencyHz( p.ladderFilterCutoffHz->get() );
+    ladderFilter.dsp.setResonance( p.ladderFilterResonance->get() );
+    ladderFilter.dsp.setDrive( p.ladderFilterDrive->get() );
+    
+    //TODO: update general filter coefficients here
+    auto sampleRate = p.getSampleRate();
+    //update generalFilter Coefficients
+    //choices:: peak, bandpass, notch, allpass
+    auto genMode = p.generalFilterMode->getIndex();
+    auto genHz = p.generalfiterFreqHz->get();
+    auto genQ = p.generalFilterQuality->get();
+    auto genGain = p.generalFilterGain->get();
+    
+    bool filterChanged = false;
+    filterChanged |= (filterFreq != genHz);
+    filterChanged |= (filterQ != genQ);
+    filterChanged |= (filterGain != genGain);
+    
+    auto updatedMode = static_cast<GeneralFilterMode>(genMode);
+    filterChanged |= (filterMode != updatedMode);
+    
+    if( filterChanged )
+    {
+        filterMode = updatedMode;
+        filterFreq = genHz;
+        filterQ = genQ;
+        filterGain = genGain;
+        
+        juce::dsp::IIR::Coefficients<float>::Ptr coefficients;
+        switch(filterMode)
+        {
+            case GeneralFilterMode::Peak:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, filterFreq, filterQ, juce::Decibels::decibelsToGain(filterGain));
+                break;
+            }
+            case GeneralFilterMode::Bandpass:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sampleRate, filterFreq, filterQ);
+                
+                break;
+            }
+            case GeneralFilterMode::Notch:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makeNotch(sampleRate, filterFreq, filterQ);
+                
+                break;
+            }
+            case GeneralFilterMode::Allpass:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate, filterFreq, filterQ);
+                
+                break;
+            }
+            case GeneralFilterMode::END_OF_LIST:
+            {
+                jassertfalse;
+                break;
+            }
+        }
+        
+        if( coefficients != nullptr )
+        {
+            if( generalFilter.dsp.coefficients->coefficients.size() != coefficients->coefficients.size() )
+            {
+                jassertfalse;
+            }
+            
+            *generalFilter.dsp.coefficients = *coefficients;
+            generalFilter.reset();
+        }
+    }
+}
+
+void Project13AudioProcessor::MonoChannelDSP::prepare(const juce::dsp::ProcessSpec &spec)
+{
+    jassert(spec.numChannels == 1);
     std::vector<juce::dsp::ProcessorBase*> dsp
     {
         &phaser,
@@ -568,12 +666,12 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: create audio parameters for all dsp choices
     //[DONE]: update DSP here from audio parameters
     //[DONE]: bypass params for each DSP element
-    //TODO: update general filter coefficients
+    //[DONE]: update general filter coefficients
     //TODO: add smoothers for all param updates
     //[DONE]: save/load settings
     //[DONE]: save/load DSP order
     //[DONE]: Bypass DSP
-    //TODO: filters are mono, not stereo.
+    //[DONE]: filters are mono, not stereo.
     //TODO: Drag-To_Reorder GUI
     //TODO: GUI design for each DSP instance?
     //TODO: metering
@@ -585,25 +683,8 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //TODO: pre/post filtering [BONUS]
     //TODO: delay module [BONUS]
     
-    phaser.dsp.setRate( phaserRateHz->get() );
-    phaser.dsp.setCentreFrequency( phaserCenterFreqHz->get() );
-    phaser.dsp.setDepth( phaserDepthPercent->get() );
-    phaser.dsp.setFeedback( phaserFeedbackPercent->get() );
-    phaser.dsp.setMix( phaserMixPercent->get() );
-
-    chorus.dsp.setRate( chorusRateHz->get() );
-    chorus.dsp.setDepth( chorusDepthPercent->get() );
-    chorus.dsp.setCentreDelay( chorusCenterDelayMs->get() );
-    chorus.dsp.setFeedback( chorusFeedbackPercent->get() );
-    chorus.dsp.setMix( chorusMixPercent->get() );
-    
-    overdrive.dsp.setDrive( overdriveSaturation->get() );
-    
-    ladderFilter.dsp.setMode(
-         static_cast<juce::dsp::LadderFilterMode>(ladderFilterMode->getIndex()));
-    ladderFilter.dsp.setCutoffFrequencyHz( ladderFilterCutoffHz->get() );
-    ladderFilter.dsp.setResonance( ladderFilterResonance->get() );
-    ladderFilter.dsp.setDrive( ladderFilterDrive->get() );
+    leftChannel.updateDSPFromParams();
+    rightChannel.updateDSPFromParams();
                              
     //temp instance to pull into
     auto newDSPOrder = DSP_Order();
@@ -620,7 +701,14 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     if( newDSPOrder != DSP_Order() )
         dspOrder = newDSPOrder;
     
-    //now convert dspOrder into an array of pointers.
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
+    rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
+    
+}
+
+void Project13AudioProcessor::MonoChannelDSP::process(juce::dsp::AudioBlock<float> block, const DSP_Order &dspOrder)
+{
     DSP_Pointers dspPointers;
     dspPointers.fill({}); //this was previously dspPointers.fill(nullptr);
     
@@ -630,23 +718,23 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         {
             case DSP_Option::Phase:
                 dspPointers[i].processor = &phaser;
-                dspPointers[i].bypassed = phaserBypass->get();
+                dspPointers[i].bypassed = p.phaserBypass->get();
                 break;
             case DSP_Option::Chorus:
                 dspPointers[i].processor = &chorus;
-                dspPointers[i].bypassed = chorusBypass->get();
+                dspPointers[i].bypassed = p.chorusBypass->get();
                 break;
             case DSP_Option::Overdrive:
                 dspPointers[i].processor = &overdrive;
-                dspPointers[i].bypassed = overdriveBypass->get();
+                dspPointers[i].bypassed = p.overdriveBypass->get();
                 break;
             case DSP_Option::LadderFilter:
                 dspPointers[i].processor = &ladderFilter;
-                dspPointers[i].bypassed = ladderFilterBypass->get();
+                dspPointers[i].bypassed = p.ladderFilterBypass->get();
                 break;
             case DSP_Option::GeneralFilter:
                 dspPointers[i].processor = &generalFilter;
-                dspPointers[i].bypassed = generalFilterBypass->get();
+                dspPointers[i].bypassed = p.generalFilterBypass->get();
                 break;
             case DSP_Option::END_OF_LIST:
                 jassertfalse;
@@ -655,7 +743,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
     
     //now process:
-    auto block = juce::dsp::AudioBlock<float>(buffer);
+    //auto block = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
     
     for( size_t i = 0; i < dspPointers.size(); ++i )
@@ -678,9 +766,6 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
            dspPointers[i].processor->process(context);
        }
    }
-
-    
-    
 }
 //==============================================================================
 bool Project13AudioProcessor::hasEditor() const

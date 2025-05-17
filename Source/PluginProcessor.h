@@ -102,6 +102,15 @@ public:
     juce::AudioParameterFloat* generalFilterGain = nullptr;
     juce::AudioParameterBool* generalFilterBypass = nullptr;
     
+    enum class GeneralFilterMode
+    {
+        Peak,
+        Bandpass,
+        Notch,
+        Allpass,
+        END_OF_LIST
+    };
+    
 private:
     DSP_Order dspOrder;
     
@@ -124,11 +133,30 @@ private:
         DSP dsp;
     };
     
-    DSP_Choice<juce::dsp::DelayLine<float>> delay;
-    DSP_Choice<juce::dsp::Phaser<float>> phaser;
-    DSP_Choice<juce::dsp::Chorus<float>> chorus;
-    DSP_Choice<juce::dsp::LadderFilter<float>> overdrive, ladderFilter;
-    DSP_Choice<juce::dsp::IIR::Filter<float>> generalFilter;
+    struct MonoChannelDSP
+    {
+        MonoChannelDSP(Project13AudioProcessor& proc) : p(proc) {}
+        DSP_Choice<juce::dsp::DelayLine<float>> delay;
+        DSP_Choice<juce::dsp::Phaser<float>> phaser;
+        DSP_Choice<juce::dsp::Chorus<float>> chorus;
+        DSP_Choice<juce::dsp::LadderFilter<float>> overdrive, ladderFilter;
+        DSP_Choice<juce::dsp::IIR::Filter<float>> generalFilter;
+     
+        void prepare(const juce::dsp::ProcessSpec& spec);
+        
+        void updateDSPFromParams();
+        
+        void process(juce::dsp::AudioBlock<float> block, const DSP_Order& dspOrder);
+        
+    private:
+        Project13AudioProcessor& p;
+        
+        GeneralFilterMode filterMode = GeneralFilterMode::END_OF_LIST;
+        float filterFreq = 0.f, filterQ = 0.f, filterGain = -100.f;
+    };
+    
+    MonoChannelDSP leftChannel { *this };
+    MonoChannelDSP rightChannel { *this };
     
     struct ProcessState
     {
