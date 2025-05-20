@@ -97,10 +97,29 @@ public:
     juce::AudioParameterBool* ladderFilterBypass = nullptr;
     
     juce::AudioParameterChoice* generalFilterMode = nullptr;
-    juce::AudioParameterFloat* generalfiterFreqHz = nullptr;
+    juce::AudioParameterFloat* generalFilterFreqHz = nullptr;
     juce::AudioParameterFloat* generalFilterQuality = nullptr;
     juce::AudioParameterFloat* generalFilterGain = nullptr;
     juce::AudioParameterBool* generalFilterBypass = nullptr;
+    
+    juce::SmoothedValue<float>
+    phaserRateHzSmoother,
+    phaserCenterFreqHzSmoother,
+    phaserDepthPercentSmoother,
+    phaserFeedbackPercentSmoother,
+    phaserMixPercentSmoother,
+    chorusRateHzSmoother,
+    chorusDepthPercentSmoother,
+    chorusCenterDelayMsSmoother,
+    chorusFeedbackPercentSmoother,
+    chorusMixPercentSmoother,
+    overdriveSaturationSmoother,
+    ladderFilterCutoffHzSmoother,
+    ladderFilterResonanceSmoother,
+    ladderFilterDriveSmoother,
+    generalFilterFreqHzSmoother,
+    generalFilterQualitySmoother,
+    generalFilterGainSmoother;
     
     enum class GeneralFilterMode
     {
@@ -180,6 +199,16 @@ private:
             jassert( *ptrToParamPtr != nullptr );
         }
     }
+    
+    std::vector<juce::SmoothedValue<float>*> getSmoothers();
+    
+    enum class SmootherUpdateMode
+    {
+        initialize,
+        liveInRealtime
+    };
+    
+    void updateSmoothersFromParams(int numSamplesToSkip, SmootherUpdateMode init);
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Project13AudioProcessor)
 };
