@@ -759,6 +759,8 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //TODO: thread-safe filter updating [BONUS]
     //TODO: pre/post filtering [BONUS]
     //TODO: delay module [BONUS]
+    //TODO: restore tabs in GUI when loading settings
+    //TODO: save/load presets
     
     leftChannel.updateDSPFromParams();
     rightChannel.updateDSPFromParams();
