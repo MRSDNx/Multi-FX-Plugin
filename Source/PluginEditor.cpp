@@ -9,6 +9,37 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+static juce::String getDSPOptionName(Project13AudioProcessor::DSP_Option option)
+{
+    switch (option)
+    {
+        case Project13AudioProcessor::DSP_Option::Phase:
+            return "PHASE";
+        case Project13AudioProcessor::DSP_Option::Chorus:
+            return "CHORUS";
+        case Project13AudioProcessor::DSP_Option::Overdrive:
+            return "OVERDRIVE";
+        case Project13AudioProcessor::DSP_Option::LadderFilter:
+            return "LADDERFILTER";
+        case Project13AudioProcessor::DSP_Option::GeneralFilter:
+            return "GEN FILTER";
+        case Project13AudioProcessor::DSP_Option::END_OF_LIST:
+            jassertfalse;
+    }
+    
+    return "NO SELECTION";
+}
+
+ExtendedTabBarButton::ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner) : juce::TabBarButton(name, owner)
+{
+    
+}
+
+juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton (const juce::String& tabName, int tabIndex)
+{
+    return new ExtendedTabBarButton(tabName, *this);
+}
+
 //==============================================================================
 Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
@@ -22,19 +53,24 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
         
         auto range = juce::Range<int>(static_cast<int>(Project13AudioProcessor::DSP_Option::Phase), static_cast<int>(Project13AudioProcessor::DSP_Option::END_OF_LIST));
         
+        tabbedComponent.clearTabs();
+        
         for( auto& v : dspOrder )
         {
             auto entry = r.nextInt(range);
             v = static_cast<Project13AudioProcessor::DSP_Option>(entry);
+            tabbedComponent.addTab(getDSPOptionName(v), juce::Colours::white, -1);
         }
-        DBG( juce::Base64::toBase64(dspOrder.data(), dspOrder.size() ));
-        jassertfalse;
+        DBG( juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
+//        jassertfalse;
         
         audioProcessor.dspOrderFifo.push(dspOrder);
     };
     
-    
+    //make DSP order visible to/on editor
     addAndMakeVisible(dspOrderButton);
+    //add tabbed component and make visible to editor
+    addAndMakeVisible(tabbedComponent);
     setSize (400, 300);
 }
 
@@ -58,5 +94,19 @@ void Project13AudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     
-    dspOrderButton.setBounds(getLocalBounds().reduced(100));
+    //give tabbed components bounds
+    
+    auto bounds = getLocalBounds();
+    
+    /*
+     within the long rectangle, instead of setting the dsp order to go from the far left of GUI to far right,
+     we're going to keep it in the centre, keep the width 150px & height of 30px.
+    */
+    
+    dspOrderButton.setBounds(bounds.removeFromTop(30).withSizeKeepingCentre(150, 30));
+    
+    //adding a gap and trimming off the remaining bounds
+    
+    bounds.removeFromTop(10);
+    tabbedComponent.setBounds(bounds.withHeight(30));
 }
