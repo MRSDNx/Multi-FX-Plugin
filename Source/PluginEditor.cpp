@@ -30,7 +30,8 @@ static juce::String getDSPOptionName(Project13AudioProcessor::DSP_Option option)
     return "NO SELECTION";
 }
 
-ExtendedTabBarButton::ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner) : juce::TabBarButton(name, owner)
+ExtendedTabBarButton::ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner) :
+    juce::TabBarButton(name, owner)
 {
     
 }
