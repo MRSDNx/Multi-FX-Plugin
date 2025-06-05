@@ -322,8 +322,6 @@ void Project13AudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, Sm
         
         smoother->skip(numSamplesToSkip);
     }
-    
-    
 }
 
 std::vector<juce::SmoothedValue<float>*> Project13AudioProcessor::getSmoothers()
