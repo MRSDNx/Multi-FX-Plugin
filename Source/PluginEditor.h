@@ -118,7 +118,7 @@ private:
     // access the processor object that created it.
     Project13AudioProcessor& audioProcessor;
     
-    juce::TextButton dspOrderButton { "dsp order" };
+//    juce::TextButton dspOrderButton { "dsp order" };
     
     ExtendedTabbedButtonBar tabbedComponent;
     

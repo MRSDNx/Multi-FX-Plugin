@@ -343,31 +343,31 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    dspOrderButton.onClick = [this]()
-    {
-        juce::Random r;
-        Project13AudioProcessor::DSP_Order dspOrder;
-        
-        auto range = juce::Range<int>(static_cast<int>(Project13AudioProcessor::DSP_Option::Phase),
-                                      static_cast<int>(Project13AudioProcessor::DSP_Option::END_OF_LIST));
-        
-        tabbedComponent.clearTabs();
-        for( auto& v : dspOrder )
-        {
-            auto entry = r.nextInt(range);
-            v = static_cast<Project13AudioProcessor::DSP_Option>(entry);
-            auto name = getDSPOptionName(v);
-            DBG( "creating tab: " << name );
-            tabbedComponent.addTab(name, juce::Colours::white, -1);
-        }
+//    dspOrderButton.onClick = [this]()
+//    {
+//        juce::Random r;
+//        Project13AudioProcessor::DSP_Order dspOrder;
+//
+//        auto range = juce::Range<int>(static_cast<int>(Project13AudioProcessor::DSP_Option::Phase),
+//                                      static_cast<int>(Project13AudioProcessor::DSP_Option::END_OF_LIST));
+//
+//        tabbedComponent.clearTabs();
+//        for( auto& v : dspOrder )
+//        {
+//            auto entry = r.nextInt(range);
+//            v = static_cast<Project13AudioProcessor::DSP_Option>(entry);
+//            auto name = getDSPOptionName(v);
+//            DBG( "creating tab: " << name );
+//            tabbedComponent.addTab(name, juce::Colours::white, -1);
+//        }
 //        DBG( juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
 //        jassertfalse;
         
-        audioProcessor.dspOrderFifo.push(dspOrder);
-    };
+//        audioProcessor.dspOrderFifo.push(dspOrder);
+//    };
     
     //make DSP order visible to/on editor
-    addAndMakeVisible(dspOrderButton);
+//    addAndMakeVisible(dspOrderButton);
     //add tabbed component and make visible to editor
     addAndMakeVisible(tabbedComponent);
     
@@ -406,7 +406,7 @@ void Project13AudioProcessorEditor::resized()
      we're going to keep it in the centre, keep the width 150px & height of 30px.
     */
     
-    dspOrderButton.setBounds(bounds.removeFromTop(30).withSizeKeepingCentre(150, 30));
+//    dspOrderButton.setBounds(bounds.removeFromTop(30).withSizeKeepingCentre(150, 30));
     
     //adding a gap and trimming off the remaining bounds
     
