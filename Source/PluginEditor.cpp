@@ -111,7 +111,22 @@ option(dspOption)
                                                           [this](){ return getBounds(); });
     constrainer->setMinimumOnscreenAmounts(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 }
-//==============================================================================
+
+int ExtendedTabBarButton::getBestTabLength(int depth)
+{
+    auto bestWidth = getLookAndFeel().getTabButtonBestWidth(*this, depth);
+    
+    auto& bar = getTabbedButtonBar();
+    /*
+     we want the tabs to occupy the entire TabBar width.
+     so, after computing the best width for the button and depth,
+     we choose whichever value is bigger, the bestWidth, or an equal division of the bar's width based on
+     the number of tabs in the bar.
+     */
+    return juce::jmax(bestWidth,
+                      bar.getWidth() / bar.getNumTabs());
+}
+
 void ExtendedTabBarButton::mouseDown (const juce::MouseEvent& e)
 {
     toFront(true);
@@ -336,7 +351,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     addAndMakeVisible(tabbedComponent);
     
     tabbedComponent.addListener(this);
-    setSize (400, 300);
+    setSize (600, 400);
 }
 
 Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
