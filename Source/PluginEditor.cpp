@@ -329,17 +329,19 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
         juce::Random r;
         Project13AudioProcessor::DSP_Order dspOrder;
         
-        auto range = juce::Range<int>(static_cast<int>(Project13AudioProcessor::DSP_Option::Phase), static_cast<int>(Project13AudioProcessor::DSP_Option::END_OF_LIST));
+        auto range = juce::Range<int>(static_cast<int>(Project13AudioProcessor::DSP_Option::Phase),
+                                      static_cast<int>(Project13AudioProcessor::DSP_Option::END_OF_LIST));
         
         tabbedComponent.clearTabs();
-        
         for( auto& v : dspOrder )
         {
             auto entry = r.nextInt(range);
             v = static_cast<Project13AudioProcessor::DSP_Option>(entry);
-            tabbedComponent.addTab(getDSPOptionName(v), juce::Colours::white, -1);
+            auto name = getDSPOptionName(v);
+            DBG( "creating tab: " << name );
+            tabbedComponent.addTab(name, juce::Colours::white, -1);
         }
-        DBG( juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
+//        DBG( juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
 //        jassertfalse;
         
         audioProcessor.dspOrderFifo.push(dspOrder);
@@ -351,6 +353,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     addAndMakeVisible(tabbedComponent);
     
     tabbedComponent.addListener(this);
+    startTimerHz(30);
     setSize (600, 400);
 }
 
@@ -394,5 +397,38 @@ void Project13AudioProcessorEditor::resized()
 
 void Project13AudioProcessorEditor::tabOrderChanged(Project13AudioProcessor::DSP_Order newOrder)
 {
+    audioProcessor.dspOrderFifo.push(newOrder);
+}
+
+void Project13AudioProcessorEditor::timerCallback()
+{
+    if( audioProcessor.restoreDspOrderFifo.getNumAvailableForReading() == 0 )
+        return;
+    
+    using T = Project13AudioProcessor::DSP_Order;
+    T newOrder;
+    newOrder.fill(Project13AudioProcessor::DSP_Option::END_OF_LIST);
+    auto empty = newOrder;
+    while( audioProcessor.restoreDspOrderFifo.pull(newOrder) )
+    {
+        ; //do nothing -- you'll do something with the most recently pulled order next. |
+    }
+    
+    if ( newOrder != empty ) //if you pulled nothing, neworder will be filled with END_OF_LIST
+    {
+        //don't create tabs if neworder is filled with END_OF_LIST
+        addTabsFromDSPOrder(newOrder);
+    }
+}
+
+void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor::DSP_Order newOrder)
+{
+    tabbedComponent.clearTabs();
+    for( auto v : newOrder )
+    {
+        tabbedComponent.addTab(getDSPOptionName(v), juce::Colours::white, -1);
+    }
+    
+    //if the order is identical to the current order used by the audio side, this push will do nothing.
     audioProcessor.dspOrderFifo.push(newOrder);
 }

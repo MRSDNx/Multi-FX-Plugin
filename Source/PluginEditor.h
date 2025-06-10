@@ -99,7 +99,8 @@ private:
 /**
 */
 class Project13AudioProcessorEditor  : public juce::AudioProcessorEditor,
-ExtendedTabbedButtonBar::Listener
+ExtendedTabbedButtonBar::Listener,
+juce::Timer
 {
 public:
     Project13AudioProcessorEditor (Project13AudioProcessor&);
@@ -110,6 +111,8 @@ public:
     void resized() override;
     
     void tabOrderChanged( Project13AudioProcessor::DSP_Order newOrder ) override;
+    
+    void timerCallback() override;
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -118,6 +121,8 @@ private:
     juce::TextButton dspOrderButton { "dsp order" };
     
     ExtendedTabbedButtonBar tabbedComponent;
+    
+    void addTabsFromDSPOrder(Project13AudioProcessor::DSP_Order);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Project13AudioProcessorEditor)
 };

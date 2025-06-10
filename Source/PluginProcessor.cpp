@@ -759,7 +759,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //TODO: thread-safe filter updating [BONUS]
     //TODO: pre/post filtering [BONUS]
     //TODO: delay module [BONUS]
-    //TODO: restore tabs in GUI when loading settings
+    //[DONE]: restore tabs in GUI when loading settings
     //TODO: save/load presets
     
     leftChannel.updateDSPFromParams();
@@ -974,6 +974,7 @@ void Project13AudioProcessor::setStateInformation (const void* data, int sizeInB
             juce::VariantConverter<Project13AudioProcessor::DSP_Order>::fromVar(apvts.state
             .getProperty("dspOrder"));
             dspOrderFifo.push(order);
+            restoreDspOrderFifo.push(order);
         }
         DBG( apvts.state.toXmlString() );
         
