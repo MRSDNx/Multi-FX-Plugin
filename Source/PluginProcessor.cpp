@@ -750,7 +750,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: prepare all DSP
     //TODO: Drag-To_Reorder GUI
     //[DONE]: snap dropped tabs to the correct position
-    //TODO: hide dragged tab image or stop dragging the tab and constrain dragged image to x axis only
+    //[DONE]: hide dragged tab image or stop dragging the tab and constrain dragged image to x axis only
     //TODO: GUI design for each DSP instance?
     //TODO: metering
     //TODO: wet/dry knob [BONUS]
