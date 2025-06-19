@@ -370,6 +370,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
 //    addAndMakeVisible(dspOrderButton);
     //add tabbed component and make visible to editor
     addAndMakeVisible(tabbedComponent);
+    addAndMakeVisible(dspGUI);
     
     tabbedComponent.addListener(this);
     startTimerHz(30);
@@ -411,7 +412,8 @@ void Project13AudioProcessorEditor::resized()
     //adding a gap and trimming off the remaining bounds
     
     bounds.removeFromTop(10);
-    tabbedComponent.setBounds(bounds.withHeight(30));
+    tabbedComponent.setBounds(bounds.removeFromTop(30));
+    dspGUI.setBounds( bounds );
 }
 
 void Project13AudioProcessorEditor::tabOrderChanged(Project13AudioProcessor::DSP_Order newOrder)
