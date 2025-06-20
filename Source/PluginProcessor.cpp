@@ -720,6 +720,73 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     return layout;
 }
 
+std::vector< juce::RangedAudioParameter* > Project13AudioProcessor::getParamsForOption(DSP_Option option)
+{
+    switch( option )
+    {
+            
+        case DSP_Option::Phase:
+        {
+            return
+            {
+                phaserRateHz,
+                phaserCenterFreqHz,
+                phaserDepthPercent,
+                phaserFeedbackPercent,
+                phaserMixPercent,
+                phaserBypass,
+            };
+        }
+        case DSP_Option::Chorus:
+        {
+            return
+            {
+                chorusRateHz,
+                chorusDepthPercent,
+                chorusCenterDelayMs,
+                chorusFeedbackPercent,
+                chorusMixPercent,
+                chorusBypass,
+            };
+        }
+        case DSP_Option::Overdrive:
+        {
+            return
+            {
+                overdriveSaturation,
+                overdriveBypass,
+            };
+        }
+        case DSP_Option::LadderFilter:
+        {
+            return
+            {
+                ladderFilterMode,
+                ladderFilterCutoffHz,
+                ladderFilterResonance,
+                ladderFilterDrive,
+                ladderFilterBypass,
+            };
+        }
+        case DSP_Option::GeneralFilter:
+        {
+            return
+            {
+                generalFilterMode,
+                generalFilterFreqHz,
+                generalFilterQuality,
+                generalFilterGain,
+                generalFilterBypass,
+            };
+        }
+        case DSP_Option::END_OF_LIST:
+            break;
+    }
+    jassertfalse;
+    return { };
+        
+}
+
 void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::MidiBuffer& midiMessages)
 {
