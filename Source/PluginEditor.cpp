@@ -464,6 +464,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     //make DSP order visible to/on editor
 //    addAndMakeVisible(dspOrderButton);
     //add tabbed component and make visible to editor
+    setLookAndFeel(&lookAndFeel);
     addAndMakeVisible(tabbedComponent);
     addAndMakeVisible(dspGUI);
     
@@ -474,6 +475,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
 
 Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
     tabbedComponent.removeListener(this);
 }
 
