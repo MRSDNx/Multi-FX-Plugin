@@ -95,10 +95,10 @@ struct ExtendedTabBarButton : juce::TabBarButton
 private:
     Project13AudioProcessor::DSP_Option option;
 };
-
+struct RotarySliderWithLabels;
 struct DSP_Gui : juce::Component
 {
-    DSP_Gui(Project13AudioProcessor& p) : processor(p) {}
+    DSP_Gui(Project13AudioProcessor& p);
     
     void resized() override;
     void paint( juce::Graphics& g ) override;
@@ -106,7 +106,7 @@ struct DSP_Gui : juce::Component
     void rebuildInterface( std::vector< juce::RangedAudioParameter* > params );
     
     Project13AudioProcessor& processor;
-    std::vector< std::unique_ptr<juce::Slider> > sliders;
+    std::vector< std::unique_ptr<RotarySliderWithLabels> > sliders;
     std::vector< std::unique_ptr<juce::ComboBox> > comboBoxes;
     std::vector< std::unique_ptr<juce::Button> > buttons;
     std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> > sliderAttachments;
