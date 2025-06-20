@@ -724,7 +724,6 @@ std::vector< juce::RangedAudioParameter* > Project13AudioProcessor::getParamsFor
 {
     switch( option )
     {
-            
         case DSP_Option::Phase:
         {
             return
@@ -782,6 +781,7 @@ std::vector< juce::RangedAudioParameter* > Project13AudioProcessor::getParamsFor
         case DSP_Option::END_OF_LIST:
             break;
     }
+    
     jassertfalse;
     return { };
         
@@ -818,6 +818,18 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: Drag-To_Reorder GUI
     //[DONE]: snap dropped tabs to the correct position
     //[DONE]: hide dragged tab image or stop dragging the tab and constrain dragged image to x axis only
+    //[DONE]: restore tabs in GUI when loading settings
+    //TODO:
+    //TODO:
+    //TODO:
+    //TODO:
+    //TODO: replace vertical sliders with SimpleMBComp rotary Sliders
+    //TODO: replace Comboboxes with SimpleMBComp combobox
+    //TODO: replace bypass buttons with SimpleMBComp combobox
+    //TODO: mouse-down on tab (during drag should change DSP_Gui
+    //TODO: make selected tab more obvious
+    //TODO: save/load presets
+    //TODO: add bypass button to tabs
     //TODO: GUI design for each DSP instance?
     //TODO: metering
     //TODO: wet/dry knob [BONUS]
@@ -826,8 +838,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //TODO: thread-safe filter updating [BONUS]
     //TODO: pre/post filtering [BONUS]
     //TODO: delay module [BONUS]
-    //[DONE]: restore tabs in GUI when loading settings
-    //TODO: save/load presets
+    
     
     leftChannel.updateDSPFromParams();
     rightChannel.updateDSPFromParams();
