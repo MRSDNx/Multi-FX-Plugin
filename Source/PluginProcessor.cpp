@@ -823,11 +823,11 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: restore tabs in GUI when loading settings
     //TODO:
     //TODO:
-    //TODO:
-    //TODO:
-    //TODO: replace vertical sliders with SimpleMBComp rotary Sliders
+    //TODO: restore tab order when window opens
+    //TODO: restore selected tab when window opens
+    //[DONE]: replace vertical sliders with SimpleMBComp rotary Sliders
     //TODO: replace Comboboxes with SimpleMBComp combobox
-    //TODO: replace bypass buttons with SimpleMBComp combobox
+    //[DONE]: replace bypass buttons with SimpleMBComp combobox
     //TODO: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
     //TODO: save/load presets
