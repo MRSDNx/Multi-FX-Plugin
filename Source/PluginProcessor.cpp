@@ -821,13 +821,13 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: snap dropped tabs to the correct position
     //[DONE]: hide dragged tab image or stop dragging the tab and constrain dragged image to x axis only
     //[DONE]: restore tabs in GUI when loading settings
+    //[DONE]: replace vertical sliders with SimpleMBComp rotary Sliders
+    //[DONE]: replace bypass buttons with SimpleMBComp combobox
     //TODO:
     //TODO:
     //TODO: restore tab order when window opens
     //TODO: restore selected tab when window opens
-    //[DONE]: replace vertical sliders with SimpleMBComp rotary Sliders
     //TODO: replace Comboboxes with SimpleMBComp combobox
-    //[DONE]: replace bypass buttons with SimpleMBComp combobox
     //TODO: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
     //TODO: save/load presets
