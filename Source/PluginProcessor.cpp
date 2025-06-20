@@ -355,21 +355,21 @@ void Project13AudioProcessor::MonoChannelDSP::updateDSPFromParams()
 {
     phaser.dsp.setRate( p.phaserRateHzSmoother.getCurrentValue() );
     phaser.dsp.setCentreFrequency( p.phaserCenterFreqHzSmoother.getCurrentValue() );
-    phaser.dsp.setDepth( p.phaserDepthPercentSmoother.getCurrentValue() );
-    phaser.dsp.setFeedback( p.phaserFeedbackPercentSmoother.getCurrentValue() );
-    phaser.dsp.setMix( p.phaserMixPercentSmoother.getCurrentValue() );
+    phaser.dsp.setDepth( p.phaserDepthPercentSmoother.getCurrentValue() * 0.01f );
+    phaser.dsp.setFeedback( p.phaserFeedbackPercentSmoother.getCurrentValue() * 0.01f );
+    phaser.dsp.setMix( p.phaserMixPercentSmoother.getCurrentValue() * 0.01f );
     
     chorus.dsp.setRate( p.chorusRateHzSmoother.getCurrentValue() );
-    chorus.dsp.setDepth( p.chorusDepthPercentSmoother.getCurrentValue() );
+    chorus.dsp.setDepth( p.chorusDepthPercentSmoother.getCurrentValue() * 0.01f );
     chorus.dsp.setCentreDelay( p.chorusCenterDelayMsSmoother.getCurrentValue() );
-    chorus.dsp.setFeedback( p.chorusFeedbackPercentSmoother.getCurrentValue() );
-    chorus.dsp.setMix( p.chorusMixPercentSmoother.getCurrentValue() );
+    chorus.dsp.setFeedback( p.chorusFeedbackPercentSmoother.getCurrentValue() * 0.01f );
+    chorus.dsp.setMix( p.chorusMixPercentSmoother.getCurrentValue() * 0.01f );
     
     overdrive.dsp.setDrive( p.overdriveSaturationSmoother.getCurrentValue() );
     
     ladderFilter.dsp.setMode( static_cast<juce::dsp::LadderFilterMode>( p.ladderFilterMode->getIndex()));
     ladderFilter.dsp.setCutoffFrequencyHz( p.ladderFilterCutoffHzSmoother.getCurrentValue() );
-    ladderFilter.dsp.setResonance( p.ladderFilterResonanceSmoother.getCurrentValue() );
+    ladderFilter.dsp.setResonance( p.ladderFilterResonanceSmoother.getCurrentValue() * 0.01f );
     ladderFilter.dsp.setDrive( p.ladderFilterDriveSmoother.getCurrentValue() );
     
     //TODO: update general filter coefficients here
@@ -459,6 +459,8 @@ void Project13AudioProcessor::MonoChannelDSP::prepare(const juce::dsp::ProcessSp
         p->prepare(spec);
         p->reset();
     }
+    
+    overdrive.dsp.setCutoffFrequencyHz(20000.f);
 }
 
 void Project13AudioProcessor::releaseResources()
@@ -524,13 +526,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout
           0.2f,
           "Hz"));
         
-    //phaser depth: 0 -1
+    //phaser depth: 0 - 100
     name = getPhaserDepthName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
-          0.05f,
+          juce::NormalisableRange<float>(0.0f, 100.f, 0.1f, 1.f),
+          5.f,
           "%"));
         
     //phaser center freq: audio hz
@@ -547,7 +549,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(-1.f, 1.f, 0.01f, 1.f),
+          juce::NormalisableRange<float>(-100.f, 100.f, 0.1f, 1.f),
           0.0f,
           "Hz"));
         
@@ -556,8 +558,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
-          0.05f,
+          juce::NormalisableRange<float>(0.0f, 100.f, 0.1f, 1.f),
+          5.f,
           "%"));
     name = getPhaserBypassName();
         layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID{name, versionHint},
@@ -586,8 +588,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
-          0.05f,
+          juce::NormalisableRange<float>(0.0f, 100.f, 0.1f, 1.f),
+          5.f,
           "%"));
         
     //Center Delay: milliseconds (1 to 100)
@@ -597,14 +599,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout
           name,
           juce::NormalisableRange<float>(1.f, 100.f, 0.1f, 1.f),
           7.f,
-          "%"));
+          "ms"));
         
     //Feedback: -1 to 1
     name = getChorusFeedbackName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(-1.f, 1.f, 0.01f, 1.f),
+          juce::NormalisableRange<float>(-100.f, 100.f, 0.1f, 1.f),
           0.0f,
           "%"));
         
@@ -613,8 +615,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(0.01f, 1.f, 0.01f, 1.f),
-          0.05f,
+          juce::NormalisableRange<float>(0.0f, 100.f, 0.1f, 1.f),
+          5.f,
           "%"));
     name = getChorusBypassName();
         layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID{name, versionHint},
@@ -662,9 +664,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 1.f),
+          juce::NormalisableRange<float>(0.f, 100.f, 0.1f, 1.f),
           0.f,
-          ""));
+          "%"));
         
     name = getLadderFilterDriveName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -697,13 +699,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout
           juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
           750.f,
           "Hz"));
-   //quality: 0.1 - 10 in 0.05 steps
+   //quality: 0.01 - 100 in 0.01 steps
     name = getGeneralFilterQualityName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
-          juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-          1.f,
+          juce::NormalisableRange<float>(0.01f, 100.f, 0.01f, 1.f),
+          0.72f,
           ""));
     //gain: -24db to +24db in 0.5db increments
     name = getGeneralFilterGainName();
