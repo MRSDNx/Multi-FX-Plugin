@@ -48,10 +48,13 @@ struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget,
     {
         virtual ~Listener() = default;
         virtual void tabOrderChanged( Project13AudioProcessor::DSP_Order newOrder ) = 0;
+        virtual void selectedTabChanged(int newCurrentTabIndex) = 0;
     };
     
     void addListener(Listener* l);
     void removeListener(Listener* l);
+    
+    void currentTabChanged (int newCurrentTabIndex, const juce::String& newCurrentTabName) override;
     
 private:
     juce::TabBarButton* findDraggedItem(const SourceDetails& dragSourceDetails);
@@ -131,6 +134,7 @@ public:
     void resized() override;
     
     void tabOrderChanged( Project13AudioProcessor::DSP_Order newOrder ) override;
+    void selectedTabChanged(int newCurrentTabIndex) override;
     
     void timerCallback() override;
 private:
@@ -141,8 +145,10 @@ private:
     DSP_Gui dspGUI { audioProcessor };
     ExtendedTabbedButtonBar tabbedComponent;
     
+    std::unique_ptr<juce::ParameterAttachment> selectedTabAttachment;
+    
     void addTabsFromDSPOrder(Project13AudioProcessor::DSP_Order);
     void rebuildInterface();
-
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Project13AudioProcessorEditor)
 };
