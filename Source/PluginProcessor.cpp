@@ -856,7 +856,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //TODO: save/load presets
     //TODO: add bypass button to tabs
     //TODO: GUI design for each DSP instance?
-    //TODO: metering
+    //[DONE]: metering
     //TODO: wet/dry knob [BONUS]
     //TODO: mono & stereo versions [mono is BONUS]
     //TODO: modulators [BONUS]
