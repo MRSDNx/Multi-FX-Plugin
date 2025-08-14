@@ -847,9 +847,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //TODO:
     //[DONE]: restore tab order when window opens
     //[DONE]: restore selected tab when window opens
-    //TODO: Restore tab order when window opens first time (after quit)
-    //TODO: Restore tabs when closing/opening window (no quit)
-    //TODO: Restore selected tab when closing/opening window (no quit)
+    //[DONE]: Restore tab order when window opens first time (after quit)
+    //[DONE]: Restore tabs when closing/opening window (no quit)
+    //[DONE]: Restore selected tab when closing/opening window (no quit)
     //TODO: replace Comboboxes with SimpleMBComp combobox
     //TODO: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
@@ -867,7 +867,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     
     leftChannel.updateDSPFromParams();
     rightChannel.updateDSPFromParams();
-                             
+    
     //temp instance to pull into
     auto newDSPOrder = DSP_Order();
     
@@ -882,6 +882,19 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //if you pulled, replace dspOrder;
     if( newDSPOrder != DSP_Order() )
         dspOrder = newDSPOrder;
+    
+    /*
+     when the plugin is first loaded, if the gui os closed and reopened, the restoreDspOrderFifo is empty.
+     the restoreDspOrderFifo is only populated when setStateInformation is called.
+     an atomic flag is used by the editor to signal that it needs the latest dspOrder
+     here is where we check that flag and push a copy of dspOrder into the restoreDspOrderFifo for the GUI
+     to retrieve in its timer callback.
+     */
+    
+    if( guiNeedsLatestDspOrder.compareAndSetBool(false, true) )
+    {
+        restoreDspOrderFifo.push(dspOrder);
+    }
    
     // OLD CODE:
     // auto block = juce::dsp::AudioBlock<float>(buffer);
