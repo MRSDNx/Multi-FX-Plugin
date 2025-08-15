@@ -851,7 +851,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: Restore tabs when closing/opening window (no quit)
     //[DONE]: Restore selected tab when closing/opening window (no quit)
     //TODO: replace Comboboxes with SimpleMBComp combobox
-    //TODO: mouse-down on tab (during drag should change DSP_Gui
+    //[DONE]: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
     //TODO: save/load presets
     //TODO: add bypass button to tabs
