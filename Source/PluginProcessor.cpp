@@ -854,7 +854,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
     //TODO: save/load presets
-    //TODO: add bypass button to tabs
+    //[DONE]: add bypass button to tabs
     //TODO: GUI design for each DSP instance?
     //[DONE]: metering
     //TODO: wet/dry knob [BONUS]
