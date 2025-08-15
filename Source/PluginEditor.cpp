@@ -753,8 +753,8 @@ void Project13AudioProcessorEditor::selectedTabChanged(int newCurrentTabIndex)
     
     if( selectedTabAttachment )
     {
-        selectedTabAttachment->setValueAsCompleteGesture(static_cast<float>(newCurrentTabIndex));
         rebuildInterface();
+        selectedTabAttachment->setValueAsCompleteGesture(static_cast<float>(newCurrentTabIndex));
     }
 }
 
