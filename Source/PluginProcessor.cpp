@@ -63,6 +63,9 @@ auto getGeneralFilterGainName() { return juce::String("General Filter Gain"); }
 auto getGeneralFilterBypassName() { return juce::String("General Filter Bypass"); }
 
 auto getSelectedTabName() { return juce::String("Selected Tab"); }
+
+auto getInputGainName() { return juce::String( "Input Gain dB" ); }
+auto getOutputGainName() { return juce::String( "Output Gain dB "); }
 //==============================================================================
 Project13AudioProcessor::Project13AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -107,6 +110,9 @@ Project13AudioProcessor::Project13AudioProcessor()
         &generalFilterQuality,
         &generalFilterGain,
         
+        &inputGain,
+        &outputGain,
+        
     };
     
     auto floatNameFuncs = std::array
@@ -132,6 +138,9 @@ Project13AudioProcessor::Project13AudioProcessor()
         &getGeneralFilterFreqName,
         &getGeneralFilterQualityName,
         &getGeneralFilterGainName,
+        
+        &getInputGainName,
+        &getOutputGainName,
     };
     
 //    for( size_t i = 0; i < floatParams.size(); ++i )
@@ -294,6 +303,11 @@ void Project13AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     }
     
     updateSmoothersFromParams(1, SmootherUpdateMode::initialize);
+    
+    spec.numChannels = getTotalNumInputChannels();
+    
+    inputGainDSP.prepare(spec);
+    outputGainDSP.prepare(spec);
 }
 
 void Project13AudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, SmootherUpdateMode init)
@@ -317,6 +331,8 @@ void Project13AudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, Sm
         generalFilterFreqHz,
         generalFilterQuality,
         generalFilterGain,
+        inputGain,
+        outputGain,
     };
     
     auto smoothers = getSmoothers();
@@ -358,6 +374,8 @@ std::vector<juce::SmoothedValue<float>*> Project13AudioProcessor::getSmoothers()
         &generalFilterFreqHzSmoother,
         &generalFilterQualitySmoother,
         &generalFilterGainSmoother,
+        &inputGainSmoother,
+        &outputGainSmoother
     };
     
     return smoothers;
@@ -531,7 +549,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout
      Feedback: -1 to +1
      Mix: 0 to 1
     */
-    auto name = getPhaserRateName();
+    
+    auto name = getInputGainName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{name, versionHint},
+            name,
+            juce::NormalisableRange<float>(-18.f, 18.f, 0.1f, 1.f),
+            0.f,
+            "dB"));
+        
+    name = getOutputGainName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{name, versionHint},
+            name,
+            juce::NormalisableRange<float>(-18.f, 18.f, 0.1f, 1.f),
+            0.f,
+            "dB"));
+        
+    name = getPhaserRateName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(
           juce::ParameterID{name, versionHint},
           name,
@@ -848,11 +883,12 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: Restore tab order when window opens first time (after quit)
     //[DONE]: Restore tabs when closing/opening window (no quit)
     //[DONE]: Restore selected tab when closing/opening window (no quit)
-    //TODO: replace Comboboxes with SimpleMBComp combobox
+    //[DONE]: replace Comboboxes with SimpleMBComp combobox
     //[DONE]: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
     //TODO: save/load presets
     //TODO: fix graphic issue when dragging tab over bypass button
+    //TODO: i/o gain controls
     //[DONE]: add bypass button to tabs
     //TODO: GUI design for each DSP instance?
     //[DONE]: metering
@@ -900,6 +936,13 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
     // rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
     
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    auto preCtx = juce::dsp::ProcessContextReplacing<float>(block);
+    
+    inputGainSmoother.setTargetValue( inputGain->get());
+    outputGainSmoother.setTargetValue( outputGain->get());
+    inputGainDSP.setGainDecibels(inputGainSmoother.getNextValue());
+    inputGainDSP.process(preCtx);
     
     /*
      process max 64 samples at a time
@@ -911,7 +954,6 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     leftPreRMS.set( buffer.getRMSLevel(0, 0, numSamples) );
     rightPreRMS.set( buffer.getRMSLevel(1, 0, numSamples) );
     
-    auto block = juce::dsp::AudioBlock<float>(buffer);
     size_t startSample = 0; // (10)
     while( samplesRemaining > 0 ) // (3)
     {
@@ -942,6 +984,10 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         startSample += samplesToProcess; // (9)
         samplesRemaining -= samplesToProcess;
     }
+    
+    auto postCtx = juce::dsp::ProcessContextReplacing<float>(block);
+    outputGainDSP.setGainDecibels(outputGainSmoother.getNextValue());
+    outputGainDSP.process(postCtx);
     
     leftPostRMS.set( buffer.getRMSLevel(0, 0, numSamples) );
     rightPostRMS.set( buffer.getRMSLevel(1, 0, numSamples) );
