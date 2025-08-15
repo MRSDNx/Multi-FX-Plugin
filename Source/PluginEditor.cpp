@@ -436,6 +436,15 @@ void DSP_Gui::paint( juce::Graphics& g )
 }
 void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > params )
 {
+    if( params == currentParams )
+    {
+        DBG( "interface didn't change" );
+        return;
+    }
+    
+    DBG( "interface changed" );
+    currentParams = params;
+    
     sliderAttachments.clear();
     comboBoxAttachments.clear();
     buttonAttachments.clear();
@@ -706,9 +715,6 @@ void Project13AudioProcessorEditor::timerCallback()
                                                                            
         selectedTabAttachment->sendInitialUpdate();
     }
-    
-    
-    
 }
 
 void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor::DSP_Order newOrder)
