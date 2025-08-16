@@ -308,6 +308,9 @@ void Project13AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     
     inputGainDSP.prepare(spec);
     outputGainDSP.prepare(spec);
+    
+    leftSCSF.prepare(samplesPerBlock);
+    rightSCSF.prepare(samplesPerBlock);
 }
 
 void Project13AudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, SmootherUpdateMode init)
@@ -891,7 +894,8 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: fix graphic issue when dragging tab over bypass button
     //[DONE]: i/o gain controls
     //[DONE]: add bypass button to tabs
-    //TODO: GUI design for each DSP instance?
+    //[DONE]: Added Spectrum Analyzer from SimpleMBComp
+    //[DONE]: GUI design for each DSP instance?
     //[DONE]: metering
     //TODO: save/load presets [BONUS]
     //TODO: wet/dry knob [BONUS]
@@ -993,6 +997,10 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     
     leftPostRMS.set( buffer.getRMSLevel(0, 0, numSamples) );
     rightPostRMS.set( buffer.getRMSLevel(1, 0, numSamples) );
+    
+    leftSCSF.update(buffer);
+    rightSCSF.update(buffer);
+    
 }
 
 void Project13AudioProcessor::MonoChannelDSP::process(juce::dsp::AudioBlock<float> block, const DSP_Order &dspOrder)
