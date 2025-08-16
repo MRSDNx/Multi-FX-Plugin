@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 #include <RotarySliderWithLabels.h>
 #include <Utilities.h>
-#include <CustomButtons.h>
+
 
 static juce::String getDSPOptionName(Project13AudioProcessor::DSP_Option option)
 {
@@ -470,25 +470,20 @@ void ExtendedTabbedButtonBar::setTabColours()
     }
 }
 
-struct PowerButtonWithParam : PowerButton
-{
-    PowerButtonWithParam(juce::RangedAudioParameter* p);
-    void changeAttachment(juce::RangedAudioParameter* p);
-private:
-    std::unique_ptr<juce::ButtonParameterAttachment> attachment;
-};
 
-PowerButtonWithParam::PowerButtonWithParam(juce::RangedAudioParameter* p)
+
+PowerButtonWithParam::PowerButtonWithParam(juce::AudioParameterBool* p)
 {
     jassert(p != nullptr);
     changeAttachment(p);
 }
 
-void PowerButtonWithParam::changeAttachment(juce::RangedAudioParameter* p)
+void PowerButtonWithParam::changeAttachment(juce::AudioParameterBool* p)
 {
     attachment.reset();
     if(p != nullptr )
     {
+        param = p;
         attachment = std::make_unique<juce::ButtonParameterAttachment>(*p, *this);
         attachment->sendInitialUpdate();
     }
@@ -589,21 +584,21 @@ void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > param
     {
         auto p = params[i];
         
-//        if( dynamic_cast<juce::AudioParameterBool*>(p) )
-//        {
-//            DBG( "skipping button attachments " );
-//        }
-//        else
-//        {
-//            //it's a float or int param make a slider
-//            sliders.push_back(std::make_unique<RotarySliderWithLabels>(p, p->label, p->getName(100)));
-//            auto& slider = *sliders.back();
-//            SimpleMBComp::addLabelPairs(slider.labels, *p, p->label);
-//            slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-//            sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
-//                                        (processor.apvts, p->getName(100), slider));
-//        }
-//
+        if( dynamic_cast<juce::AudioParameterBool*>(p) )
+        {
+            DBG( "skipping button attachments " );
+        }
+        else
+        {
+            //it's a float or int param make a slider
+            sliders.push_back(std::make_unique<RotarySliderWithLabels>(p, p->label, p->getName(100)));
+            auto& slider = *sliders.back();
+            SimpleMBComp::addLabelPairs(slider.labels, *p, p->label);
+            slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+            sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
+                                        (processor.apvts, p->getName(100), slider));
+        }
+#if false
         if( auto* choice = dynamic_cast<juce::AudioParameterChoice*>(p) )
         {
             //make a combobox
@@ -617,10 +612,10 @@ void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > param
         {
             //make a toggle button
             
-//            buttons.push_back(std::make_unique<juce::ToggleButton>("Bypass"));
-//            auto& btn = *buttons.back();
-//            buttonAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>
-//                                        (processor.apvts, p->getName(100), btn));
+            buttons.push_back(std::make_unique<juce::ToggleButton>("Bypass"));
+            auto& btn = *buttons.back();
+            buttonAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>
+                                        (processor.apvts, p->getName(100), btn));
             
             DBG( "DSP_Gui::rebuild interface skipping APVTS::ButtonAttachment for AudioParameterBool: " <<
                 p->getName(100));
@@ -635,6 +630,7 @@ void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > param
             sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>
                                         (processor.apvts, p->getName(100), slider));
         }
+#endif
     }
     
     for( auto& slider : sliders )
@@ -645,6 +641,16 @@ void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > param
         addAndMakeVisible(btn.get());
     
     resized();
+}
+
+void DSP_Gui::toggleSliderEnablement(bool enabled)
+{
+    for( auto& slider : sliders )
+        slider->setEnabled(enabled);
+    for( auto& cb : comboBoxes )
+        cb->setEnabled(enabled);
+    for( auto& btn : buttons )
+        btn->setEnabled(enabled);
 }
 //==============================================================================
 Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProcessor& p)
@@ -885,26 +891,41 @@ void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor:
     auto size = tabbedComponent.getHeight();
     for( int i = 0; i < numTabs; ++i )
     {
-        if( auto tab = tabbedComponent.getTabButton(i) ) // we get a tab
+        if( auto tab = tabbedComponent.getTabButton(i) )
         {
-            auto order = newOrder[i]; // if our tab is not a nullptr, then we can get the order
-            auto params = audioProcessor.getParamsForOption(order); // then we can retrieve the params for that tab
-            for( auto p : params ) // then we can search through these tabs
+            auto order = newOrder[i];
+            auto params = audioProcessor.getParamsForOption(order);
+            if( auto bypass = findBypassParam(params) )
             {
-                if( auto bypass = dynamic_cast<juce::AudioParameterBool*>(p)) // to see if we have a bool parameter
-                   {
-                    if( bypass->name.containsIgnoreCase("bypass") ) // if that bypass candidate param has the word "bypass" in it, ignoring it's case,
+                auto pbwp = std::make_unique<PowerButtonWithParam>(bypass);
+                pbwp->setSize(size, size);
+                
+                
+                pbwp->onClick = [this, btn = pbwp.get()]()
+                {
+                    
+                    /*
+                     If the button that was clicked is the same button on the active tab,
+                        refresh the slider enablement on the DSP GUI
+                     */
+                    
+                    auto idx = tabbedComponent.getCurrentTabIndex();
+                    if( auto tabButton = tabbedComponent.getTabButton(idx) )
                     {
-                        auto pbwp = std::make_unique<PowerButtonWithParam>(bypass); // now we can make our power button with that bypass param
-                        pbwp->setSize(size, size); // we can set our size of the bypass button
-                        tab->setExtraComponent(pbwp.release(), // we can set the extra component
-                            juce::TabBarButton::ExtraComponentPlacement::beforeText); // and tell it to place it before the text, and give up ownership of it as well
+                        if( tabButton->getExtraComponent() == btn )
+                        {
+                            refreshDSPGUIControlEnablement(btn);
+                        }
                     }
-                }
+                };
+                
+                tab->setExtraComponent(pbwp.release(),
+                    juce::TabBarButton::ExtraComponentPlacement::beforeText);
             }
         }
     }
-
+    
+    tabbedComponent.setTabColours();
     rebuildInterface();
     //if the order is identical to the current order used by the audio side, this push will do nothing.
     audioProcessor.dspOrderFifo.push(newOrder);
@@ -920,6 +941,10 @@ void Project13AudioProcessorEditor::rebuildInterface()
         auto params = audioProcessor.getParamsForOption(option);
         jassert(params.empty() == false);
         dspGUI.rebuildInterface(params);
+        if( auto btn = dynamic_cast<PowerButtonWithParam*>(etbb->getExtraComponent()))
+        {
+            refreshDSPGUIControlEnablement(btn);
+        }
     }
 }
         
@@ -953,9 +978,23 @@ void Project13AudioProcessorEditor::selectedTabChanged(int newCurrentTabIndex)
     }
 }
 
-    
-    
-    
-    
-    
-    
+/*
+ Enabling the bypass buttons to control the slider enablement requires a few steps
+ 1. the button on-click must be configured to toggle the DSP GUI slider enablement
+ 2. the on-click must only toggle it if the button being clicked is the button in the currently selected tab
+ 3. the dspGUI needs to have a mechanism to toggle the slider enablement
+ 4. the dspGUI needs to toggle the enablement whenever it rebuilds itself.
+ */
+
+void Project13AudioProcessorEditor::refreshDSPGUIControlEnablement(PowerButtonWithParam *button)
+{
+    if( button != nullptr )
+    {
+        if ( auto bypass = button->getParam() )
+        {
+            //if bypassed is true, enablement should be false
+            dspGUI.toggleSliderEnablement( bypass->get() == false );
+        }
+    }
+}
+

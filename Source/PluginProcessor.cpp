@@ -885,9 +885,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: Restore selected tab when closing/opening window (no quit)
     //[DONE]: replace Comboboxes with SimpleMBComp combobox
     //[DONE]: mouse-down on tab (during drag should change DSP_Gui
-    //TODO: make selected tab more obvious
+    //[DONE]: make selected tab more obvious
     //[DONE]: restore selected tab when window opens
-    //TODO: bypass button should toggle RotarySlider enablement
+    //[DONE]: bypass button should toggle RotarySlider enablement
     //[DONE]: fix graphic issue when dragging tab over bypass button
     //[DONE]: i/o gain controls
     //[DONE]: add bypass button to tabs
