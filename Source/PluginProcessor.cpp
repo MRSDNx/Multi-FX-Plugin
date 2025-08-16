@@ -886,12 +886,14 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //[DONE]: replace Comboboxes with SimpleMBComp combobox
     //[DONE]: mouse-down on tab (during drag should change DSP_Gui
     //TODO: make selected tab more obvious
-    //TODO: save/load presets
-    //TODO: fix graphic issue when dragging tab over bypass button
-    //TODO: i/o gain controls
+    //TODO: restore selected tab when window opens
+    //TODO: bypass button should toggle RotarySlider enablement
+    //[DONE]: fix graphic issue when dragging tab over bypass button
+    //[DONE]: i/o gain controls
     //[DONE]: add bypass button to tabs
     //TODO: GUI design for each DSP instance?
     //[DONE]: metering
+    //TODO: save/load presets [BONUS]
     //TODO: wet/dry knob [BONUS]
     //TODO: mono & stereo versions [mono is BONUS]
     //TODO: modulators [BONUS]
